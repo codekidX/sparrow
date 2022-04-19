@@ -26,8 +26,6 @@ checksum = "aae1277d39aeec15cb388266ecc24b11c80469deae6067e17a1a7aa9e5c1f234"
 [[package]]
 name = "aerospike"
 version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "267d002de5cbbcc717c2047c48d5faa16b0d1f0ee9b564c846f78105724ab029"
 dependencies = [
  "base64 0.11.0",
  "byteorder",
