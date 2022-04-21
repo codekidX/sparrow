@@ -1,8 +1,8 @@
-# 🦅 Sparrow
+# Sparrow
 
-|Status| Version | Download |
-|------|----------|
-| `Alpha` | **0.1.1** | [Releases](https://github.com/codekidX/sparrow/releases) |
+|Status| Version | Download | Platforms |
+|------|----------|---------|-----------|
+| `Beta` | **0.1.1** | [Releases](https://github.com/codekidX/sparrow/releases) | Mac |
 
 Sparrow is a minimal Aerospike client used to view data from your Aerospike
 cluster. Sparrow does not have ability to write/update data yet. 
