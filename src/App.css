@@ -3,10 +3,14 @@
   height: 100vh;
 }
 
-pre {
+.boxed {
   background-color: #242526;
   padding: 0.2em;
   border-radius: 5px;
   width: auto;
   color: white;
+}
+
+.monaco-editor {
+  border-radius: 10px !important;
 }

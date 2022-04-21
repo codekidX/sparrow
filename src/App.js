@@ -3,6 +3,7 @@ import './App.css';
 import { invoke } from '@tauri-apps/api/tauri'
 import { Form, Button, Card, Col, Row } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 const inputStyle = {
   backgroundColor: '#242526',
@@ -30,22 +31,23 @@ function App() {
           password: e.target[2].value,
           port: Number(e.target[3].value),
         };
+        
         invoke("connect", { payload })
-        .then(message => {
-          console.info("Connection: ", message);
+          .then(message => {
+            console.info("Connection: ", message);
 
-          let connections = localStorage.getItem("conns");
-          if (connections === "" || connections === null) {
-            localStorage.setItem("conns", JSON.stringify([payload]));
-          } else {
-            connections = JSON.parse(connections);
-            connections.push(payload);
-            localStorage.setItem("conns", JSON.stringify(connections));
-          }
+            let connections = localStorage.getItem("conns");
+            if (connections === "" || connections === null) {
+              localStorage.setItem("conns", JSON.stringify([payload]));
+            } else {
+              connections = JSON.parse(connections);
+              connections.push(payload);
+              localStorage.setItem("conns", JSON.stringify(connections));
+            }
 
-          navigate("/schema", { state: { host: e.target[0].value } });
-        })
-        .catch(e => console.error(e));
+            navigate("/schema", { state: { host: e.target[0].value } });
+          })
+          .catch(e => console.error(e));
       }}>
         <Form.Group className="mb-3" controlId="formBasicEmail">
           <Form.Control style={inputStyle} placeholder="Enter hosts (comma separated)" />
@@ -76,8 +78,8 @@ function App() {
       {conns.map(conn => 
           (
             <Col xs={6} md={4}>
-            <Card style={{ backgroundColor: '#242526', fontSize: '13px' }} >
-              <Card.Header>{conn.hosts}</Card.Header>
+            <Card style={{ backgroundColor: '#242526', fontSize: '13px', borderRadius: '5px' }} >
+              <Card.Header><b>{conn.hosts}</b></Card.Header>
               <Card.Body>
                 {conn.username}
               </Card.Body>
@@ -85,8 +87,7 @@ function App() {
               <Button style={{ fontSize: '13px' }} variant='success' onClick={() => {
                   invoke("connect", { payload: conn })
                   .then(message => {
-                    console.info("Connection: ", message);
-          
+                    
                     navigate("/schema", { state: { host: conn.hosts } });
                   })
                   .catch(e => console.error(e))

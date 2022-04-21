@@ -5,7 +5,8 @@
 
 use std::{sync::Mutex, collections::HashMap};
 
-use aerospike::{Client, ClientPolicy, Bins, ScanPolicy};
+use tauri::{ MenuEntry, MenuItem, Submenu, Menu, AboutMetadata };
+use aerospike::{Client, ClientPolicy, Bins, BatchPolicy, as_key, BatchRead};
 
 struct AppState {
     as_client: Mutex<Option<Client>>,
@@ -35,8 +36,8 @@ struct ListSetsPayload {
 struct SparrowQuery {
     ns: String,
     set: String,
-    bins: Vec<String>,
-    filter: HashMap<String, String>
+    bins: Option<Vec<String>>,
+    filter: Vec<String>,
 }
 
 #[tauri::command]
@@ -109,39 +110,73 @@ fn get_sets(state: tauri::State<AppState>, payload: ListSetsPayload) -> Result<V
 }
 
 #[tauri::command]
-fn query_set(state: tauri::State<AppState>, query: SparrowQuery) -> Result<Vec<String>, String> {
+fn query_set(state: tauri::State<AppState>, query: SparrowQuery) -> Result<Vec<HashMap<String, String>>, String> {
     let as_client = state.as_client.lock().unwrap();
     let c = as_client.as_ref().unwrap();
-    let mut scan_policy = ScanPolicy::default();
-    scan_policy.scan_percent = 1;
-    scan_policy.record_queue_size = 10;
-    scan_policy.max_concurrent_nodes = 0;
-    match c.scan(&scan_policy, &query.ns, &query.set, Bins::All) {
+    let mut batch_reads = vec![];
+    for k in query.filter {
+        batch_reads.push(BatchRead::new(as_key!(&query.ns, &query.set, k), &Bins::All));
+    }
+
+    let mut result = vec![];
+    match c.batch_get(&BatchPolicy::default(), batch_reads) {
         Ok(records) => {
-            let mut count = 0;
-            for record in &*records {
-                match record {
-                    Ok(record) => {
-                        count += 1;
-                        println!("Record: {}", record);
-                    },
-                    Err(err) => panic!("Error executing scan: {}", err),
+            for record in records {
+                if record.record.is_some() {
+                    let r = record.record.unwrap();
+                    let mut map_r = HashMap::new();
+                    for k in r.bins.keys() {
+                        map_r.insert(k.clone(), r.bins[k].to_string());
+                    }
+
+                    result.push(map_r);
                 }
             }
-            println!("Records: {}", count);
         },
-        Err(err) => println!("Failed to execute scan: {}", err),
+        Err(err) => println!("Failed to execute get: {}", err),
     }
-    Ok(vec![])
+    Ok(result)
 }
 
 
 fn main() {
+    let ctx = tauri::generate_context!();
     tauri::Builder::default()
         .manage(AppState {
             as_client: Mutex::new(None),
         })
         .invoke_handler(tauri::generate_handler![connect, get_node_info, disconnect, get_sets, query_set])
-        .run(tauri::generate_context!())
+        .menu(Menu::with_items([
+            #[cfg(target_os = "macos")]
+            MenuEntry::Submenu(Submenu::new(
+                &ctx.package_info().name,
+                Menu::with_items([
+                MenuItem::About(ctx.package_info().name.clone(), AboutMetadata::default()).into(),
+                MenuItem::Separator.into(),
+                MenuItem::Services.into(),
+                MenuItem::Separator.into(),
+                MenuItem::Hide.into(),
+                MenuItem::HideOthers.into(),
+                MenuItem::ShowAll.into(),
+                MenuItem::Separator.into(),
+                MenuItem::Quit.into(),
+                ]),
+            )),
+            MenuEntry::Submenu(Submenu::new(
+                "Edit",
+                Menu::with_items([
+                  MenuItem::Undo.into(),
+                  MenuItem::Redo.into(),
+                  MenuItem::Separator.into(),
+                  MenuItem::Cut.into(),
+                  MenuItem::Copy.into(),
+                  MenuItem::Paste.into(),
+                  #[cfg(not(target_os = "macos"))]
+                  MenuItem::Separator.into(),
+                  MenuItem::SelectAll.into(),
+                ]),
+              )),
+        ]))
+        .run(ctx)
         .expect("error while running tauri application");
 }

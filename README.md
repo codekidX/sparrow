@@ -1,8 +1,8 @@
 # 🦅 Sparrow
 
-|Status|
-|------|
-| ☠️ `Alpha` |
+|Status| Version | Download |
+|------|----------|
+| `Alpha` | **0.1.1** | [Releases](https://github.com/codekidX/sparrow/releases) |
 
 Sparrow is a minimal Aerospike client used to view data from your Aerospike
 cluster. Sparrow does not have ability to write/update data yet. 
@@ -20,25 +20,15 @@ into respective FilterExpression and Statement.
 
 ```json
 {
-    "filter": {
-        "user": "Ashish",
-        "id": 1
-    },
-    "pk": 1,
-    "filter_or": {
-        "a": 1,
-        "b": 2
-    }
+    "filter": ["codekidX"],
+    "bins": ["email", "mobile"]
 }
 ```
 
-1. `filter` your set `where user = "Ashish" AND id = 1`
-2. get record `where pk = 1`
-3. `filter` your set `where a = 1 OR b = 2`
+1. `filter` your set where primary key is `codekidX`
+2. `bins` lets you include the data corresponding to your `filter`
 
-Sparrow Query is Experimental and may have performance issues.
-
-#### Debugging
+#### Debugging/Developing
 
 > Currently you'll not be able to build and debug Sparrow on your system.
 > There is a custom aerospike-client-rust fork with support for info command

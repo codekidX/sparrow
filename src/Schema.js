@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
+
 import "./App.css";
 
 import { invoke } from "@tauri-apps/api/tauri"
@@ -9,6 +10,7 @@ function Schema() {
     const [state, setState] = useState({
         nodes: [],
     });
+
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -44,12 +46,13 @@ function Schema() {
 
             <Button style={{ fontSize: '13px' }} variant="danger" onClick={() => {
                 invoke("disconnect")
-                    .then(a => {
-                        console.info(a);
+                    .then((a) => {
+                        setState({ ...state, messageSuccess: 'Disconnected' });
                         navigate(-1);
                     })
                     .catch(e => console.error(e))
             }}>Disconnect</Button>
+
         </div>
     )
 }
