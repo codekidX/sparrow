@@ -9,6 +9,7 @@
   border-radius: 5px;
   width: auto;
   color: white;
+  font-family: monospace;
 }
 
 .monaco-editor {

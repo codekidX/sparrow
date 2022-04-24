@@ -100,7 +100,6 @@ fn get_node_info(state: tauri::State<AppState>) -> Result<Vec<ASNode>, String> {
     let mut result = vec![];
     for n in nodes {
         let namespaces = c.info(&["namespaces"], &n.host()).unwrap();
-
         result.push(ASNode {
             name: n.name().to_owned(),
             namespaces: namespaces

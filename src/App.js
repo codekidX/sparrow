@@ -66,7 +66,7 @@ function App() {
               localStorage.setItem("conns", JSON.stringify(connections));
             }
 
-            navigate("/schema", { state: { host: payload.hosts, nickname: payload.nickname } });
+            navigate("/schema", { state: { host: payload.hosts, nickname: payload.nickname }, replace: true });
           });
       }}>
         <Form.Group className="mb-3" controlId="formBasicEmail">
@@ -121,7 +121,7 @@ function App() {
                             return;
                           }
 
-                          navigate("/schema", { state: { host: conn.hosts, nickname: conn.nickname } });
+                          navigate("/schema", { state: { host: conn.hosts, nickname: conn.nickname }, replace: true });
                         });
                     }}>Connect</Button>
                   </Card.Footer>

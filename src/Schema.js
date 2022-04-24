@@ -23,6 +23,17 @@ function Schema() {
     return (
         <div className="App">
             <div className="boxed">{location.state.host}</div>
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'row-reverse', padding: '1em' }} >
+                <Button style={{ fontSize: '13px' }} variant="danger" onClick={() => {
+                    invoke("disconnect")
+                        .then((a) => {
+                            setState({ ...state, messageSuccess: 'Disconnected' });
+                            navigate('/', { replace: true });
+                        })
+                        .catch(e => console.error(e))
+                }}>Disconnect</Button>
+
+            </div>
             {
                 state.nodes.length === 0 ? '' : 
                 (state.nodes.map(n => (
