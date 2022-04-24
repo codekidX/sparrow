@@ -3,10 +3,10 @@
     windows_subsystem = "windows"
 )]
 
-use std::{sync::Mutex, collections::HashMap};
+use std::{collections::HashMap, sync::Mutex};
 
-use tauri::{ MenuEntry, MenuItem, Submenu, Menu, AboutMetadata };
-use aerospike::{Client, ClientPolicy, Bins, BatchPolicy, as_key, BatchRead};
+use aerospike::{as_key, BatchPolicy, BatchRead, Bins, Client, ClientPolicy};
+use tauri::{AboutMetadata, Menu, MenuEntry, MenuItem, Submenu};
 
 struct AppState {
     as_client: Mutex<Option<Client>>,
@@ -81,17 +81,25 @@ fn get_node_info(state: tauri::State<AppState>) -> Result<Vec<ASNode>, String> {
     let mut result = vec![];
     for n in nodes {
         let namespaces = c.info(&["namespaces"], &n.host()).unwrap();
-        
-        result.push(ASNode{ 
+
+        result.push(ASNode {
             name: n.name().to_owned(),
-            namespaces: namespaces.get("namespaces").unwrap().split(";").map(|ns|  ns.to_owned()).collect()
+            namespaces: namespaces
+                .get("namespaces")
+                .unwrap()
+                .split(";")
+                .map(|ns| ns.to_owned())
+                .collect(),
         });
     }
     Ok(result)
 }
 
 #[tauri::command]
-fn get_sets(state: tauri::State<AppState>, payload: ListSetsPayload) -> Result<Vec<String>, String> {
+fn get_sets(
+    state: tauri::State<AppState>,
+    payload: ListSetsPayload,
+) -> Result<Vec<String>, String> {
     let as_client = state.as_client.lock().unwrap();
     let c = as_client.as_ref().unwrap();
     let node = c.get_node(&payload.node).unwrap();
@@ -114,12 +122,18 @@ fn get_sets(state: tauri::State<AppState>, payload: ListSetsPayload) -> Result<V
 }
 
 #[tauri::command]
-fn query_set(state: tauri::State<AppState>, query: SparrowQuery) -> Result<Vec<HashMap<String, String>>, String> {
+fn query_set(
+    state: tauri::State<AppState>,
+    query: SparrowQuery,
+) -> Result<Vec<HashMap<String, String>>, String> {
     let as_client = state.as_client.lock().unwrap();
     let c = as_client.as_ref().unwrap();
     let mut batch_reads = vec![];
     for k in query.filter {
-        batch_reads.push(BatchRead::new(as_key!(&query.ns, &query.set, k), &Bins::All));
+        batch_reads.push(BatchRead::new(
+            as_key!(&query.ns, &query.set, k),
+            &Bins::All,
+        ));
     }
 
     let mut result = vec![];
@@ -136,12 +150,11 @@ fn query_set(state: tauri::State<AppState>, query: SparrowQuery) -> Result<Vec<H
                     result.push(map_r);
                 }
             }
-        },
+        }
         Err(err) => println!("Failed to execute get: {}", err),
     }
     Ok(result)
 }
-
 
 fn main() {
     let ctx = tauri::generate_context!();
@@ -149,37 +162,44 @@ fn main() {
         .manage(AppState {
             as_client: Mutex::new(None),
         })
-        .invoke_handler(tauri::generate_handler![connect, get_node_info, disconnect, get_sets, query_set])
+        .invoke_handler(tauri::generate_handler![
+            connect,
+            get_node_info,
+            disconnect,
+            get_sets,
+            query_set
+        ])
         .menu(Menu::with_items([
             #[cfg(target_os = "macos")]
             MenuEntry::Submenu(Submenu::new(
                 &ctx.package_info().name,
                 Menu::with_items([
-                MenuItem::About(ctx.package_info().name.clone(), AboutMetadata::default()).into(),
-                MenuItem::Separator.into(),
-                MenuItem::Services.into(),
-                MenuItem::Separator.into(),
-                MenuItem::Hide.into(),
-                MenuItem::HideOthers.into(),
-                MenuItem::ShowAll.into(),
-                MenuItem::Separator.into(),
-                MenuItem::Quit.into(),
+                    MenuItem::About(ctx.package_info().name.clone(), AboutMetadata::default())
+                        .into(),
+                    MenuItem::Separator.into(),
+                    MenuItem::Services.into(),
+                    MenuItem::Separator.into(),
+                    MenuItem::Hide.into(),
+                    MenuItem::HideOthers.into(),
+                    MenuItem::ShowAll.into(),
+                    MenuItem::Separator.into(),
+                    MenuItem::Quit.into(),
                 ]),
             )),
             MenuEntry::Submenu(Submenu::new(
                 "Edit",
                 Menu::with_items([
-                  MenuItem::Undo.into(),
-                  MenuItem::Redo.into(),
-                  MenuItem::Separator.into(),
-                  MenuItem::Cut.into(),
-                  MenuItem::Copy.into(),
-                  MenuItem::Paste.into(),
-                  #[cfg(not(target_os = "macos"))]
-                  MenuItem::Separator.into(),
-                  MenuItem::SelectAll.into(),
+                    MenuItem::Undo.into(),
+                    MenuItem::Redo.into(),
+                    MenuItem::Separator.into(),
+                    MenuItem::Cut.into(),
+                    MenuItem::Copy.into(),
+                    MenuItem::Paste.into(),
+                    #[cfg(not(target_os = "macos"))]
+                    MenuItem::Separator.into(),
+                    MenuItem::SelectAll.into(),
                 ]),
-              )),
+            )),
         ]))
         .run(ctx)
         .expect("error while running tauri application");
