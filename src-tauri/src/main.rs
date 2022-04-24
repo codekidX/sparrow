@@ -40,8 +40,17 @@ struct SparrowQuery {
     filter: Vec<String>,
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+struct ConnectResponse {
+    ok: bool,
+    message: String,
+}
+
 #[tauri::command]
-fn connect(state: tauri::State<AppState>, payload: ConnectPayload) -> Result<String, String> {
+fn connect(
+    state: tauri::State<AppState>,
+    payload: ConnectPayload,
+) -> Result<ConnectResponse, String> {
     let cpolicy = if payload.username.is_some() && payload.password.is_some() {
         let mut p = ClientPolicy::default();
         p.set_user_password(
@@ -53,11 +62,21 @@ fn connect(state: tauri::State<AppState>, payload: ConnectPayload) -> Result<Str
     } else {
         ClientPolicy::default()
     };
-    let client = Client::new(&cpolicy, &payload.hosts).map_err(|e| e.to_string())?;
+    let client = Client::new(&cpolicy, &payload.hosts);
+    if client.is_err() {
+        return Ok(ConnectResponse {
+            ok: false,
+            message: client.err().unwrap().to_string(),
+        });
+    }
+    let client = client.unwrap();
     let mut as_client = state.as_client.lock().unwrap();
     *as_client = Some(client);
 
-    Ok("Done".into())
+    Ok(ConnectResponse {
+        ok: true,
+        message: "Connected".into(),
+    })
 }
 
 #[tauri::command]

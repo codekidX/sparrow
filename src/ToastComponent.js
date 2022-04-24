@@ -5,10 +5,10 @@ function ToastComponent(props) {
         showError: props.messageError === '' ? false : true,
         showSuccess: props.messageSuccess === '' ? false : true,
     };
-    
+
     return (
         <ToastContainer position="bottom-end" className="p-3">
-            <Toast show={innerState.showError} onClose={props.resetMessage} bg="danger" delay={3000} autohide>
+            <Toast show={innerState.showError} onClose={props.resetMessage} bg="danger" delay={5000} autohide>
                 <Toast.Body>{props.messageError}</Toast.Body>
             </Toast>
             <Toast show={innerState.showSuccess} onClose={props.resetMessage} bg="success" delay={3000} autohide>

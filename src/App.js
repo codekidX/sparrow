@@ -1,9 +1,11 @@
 import './App.css';
+import './ToastComponent';
 
 import { invoke } from '@tauri-apps/api/tauri'
 import { Form, Button, Card, Col, Row } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import ToastComponent from './ToastComponent';
 
 const inputStyle = {
   backgroundColor: '#242526',
@@ -13,6 +15,18 @@ const inputStyle = {
 }
 
 function App() {
+  const [state, setState] = useState({
+    messageError: '',
+    messageSuccess: '',
+  });
+
+  const resetMessage = () => {
+    setState({
+      messageError: '',
+      messageSuccess: '',
+    });
+  }
+
   const navigate = useNavigate();
 
   let conns = localStorage.getItem("conns");
@@ -34,8 +48,14 @@ function App() {
         };
 
         invoke("connect", { payload })
-          .then(message => {
-            console.info("Connection: ", message);
+          .then(response => {
+            if (!response.ok) {
+              setState({
+                ...state,
+                messageError: response.message
+              });
+              return;
+            }
 
             let connections = localStorage.getItem("conns");
             if (connections === "" || connections === null) {
@@ -47,8 +67,7 @@ function App() {
             }
 
             navigate("/schema", { state: { host: payload.hosts, nickname: payload.nickname } });
-          })
-          .catch(e => console.error(e));
+          });
       }}>
         <Form.Group className="mb-3" controlId="formBasicEmail">
           <Form.Control required style={inputStyle} placeholder="Nickname" />
@@ -93,11 +112,17 @@ function App() {
                   <Card.Footer style={{ display: 'flex', flexDirection: 'row-reverse', backgroundColor: '#242526' }}>
                     <Button style={{ fontSize: '13px' }} variant='success' onClick={() => {
                       invoke("connect", { payload: conn })
-                        .then(message => {
+                        .then(response => {
+                          if (!response.ok) {
+                            setState({
+                              ...state,
+                              messageError: response.message
+                            });
+                            return;
+                          }
 
-                          navigate("/schema", { state: { host: conn.hosts } });
-                        })
-                        .catch(e => console.error(e))
+                          navigate("/schema", { state: { host: conn.hosts, nickname: conn.nickname } });
+                        });
                     }}>Connect</Button>
                   </Card.Footer>
                 </Card>
@@ -107,6 +132,8 @@ function App() {
           </Row>
         </div>
       ) : ''}
+
+      <ToastComponent messageError={state.messageError} messageSuccess={state.messageSuccess} resetMessage={resetMessage} />
     </div>
   );
 }
