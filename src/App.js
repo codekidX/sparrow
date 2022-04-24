@@ -26,12 +26,13 @@ function App() {
       <Form onSubmit={(e) => {
         e.preventDefault();
         const payload = {
-          hosts: e.target[0].value,
-          username: e.target[1].value,
-          password: e.target[2].value,
-          port: Number(e.target[3].value),
+          nickname: e.target[0].value,
+          hosts: e.target[1].value,
+          username: e.target[2].value === '' ? null : e.target[2].value,
+          password: e.target[3].value === '' ? null : e.target[3].value,
+          port: Number(e.target[4].value),
         };
-        
+
         invoke("connect", { payload })
           .then(message => {
             console.info("Connection: ", message);
@@ -50,7 +51,10 @@ function App() {
           .catch(e => console.error(e));
       }}>
         <Form.Group className="mb-3" controlId="formBasicEmail">
-          <Form.Control style={inputStyle} placeholder="Enter hosts (comma separated)" />
+          <Form.Control required style={inputStyle} placeholder="Nickname" />
+        </Form.Group>
+        <Form.Group className="mb-3" controlId="formBasicEmail">
+          <Form.Control required style={inputStyle} placeholder="Enter hosts (comma separated)" />
         </Form.Group>
         <Form.Group className="mb-3" controlId="formBasicEmail">
           <Form.Control style={inputStyle} placeholder="Enter username" />
@@ -61,8 +65,8 @@ function App() {
         </Form.Group>
 
 
-        <Form.Group className="mb-3" controlId="formBasicPassword">
-          <Form.Control style={inputStyle} max={99999} type="number" placeholder="Enter port" />
+        <Form.Group className="mb-3">
+          <Form.Control required style={inputStyle} max={99999} type="number" placeholder="Enter port" />
         </Form.Group>
 
         <Button style={{ fontSize: '13px' }} variant="outline-light" type="submit">
@@ -75,30 +79,30 @@ function App() {
       <br />
       <br />
       <Row>
-      {conns.map(conn => 
-          (
-            <Col xs={6} md={4}>
+        {conns.map(conn =>
+        (
+          <Col xs={6} md={4}>
             <Card style={{ backgroundColor: '#242526', fontSize: '13px', borderRadius: '5px' }} >
-              <Card.Header><b>{conn.hosts}</b></Card.Header>
+              <Card.Header><b>{conn.nickname}</b></Card.Header>
               <Card.Body>
-                {conn.username}
+                {conn.hosts}
               </Card.Body>
-              <Card.Footer style={{display: 'flex', flexDirection: 'row-reverse', backgroundColor: '#242526'}}>
-              <Button style={{ fontSize: '13px' }} variant='success' onClick={() => {
+              <Card.Footer style={{ display: 'flex', flexDirection: 'row-reverse', backgroundColor: '#242526' }}>
+                <Button style={{ fontSize: '13px' }} variant='success' onClick={() => {
                   invoke("connect", { payload: conn })
-                  .then(message => {
-                    
-                    navigate("/schema", { state: { host: conn.hosts } });
-                  })
-                  .catch(e => console.error(e))
+                    .then(message => {
+
+                      navigate("/schema", { state: { host: conn.hosts } });
+                    })
+                    .catch(e => console.error(e))
                 }}>Connect</Button>
               </Card.Footer>
             </Card>
-            </Col>
-          )
-      )}
+          </Col>
+        )
+        )}
       </Row>
-      
+
     </div>
   );
 }

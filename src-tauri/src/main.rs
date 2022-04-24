@@ -63,7 +63,11 @@ fn connect(state: tauri::State<AppState>, payload: ConnectPayload) -> Result<Str
 #[tauri::command]
 fn disconnect(state: tauri::State<AppState>) -> Result<String, String> {
     let mut as_client = state.as_client.lock().unwrap();
-    as_client.as_ref().unwrap().close();
+    as_client
+        .as_ref()
+        .unwrap()
+        .close()
+        .map_err(|e| e.to_string())?;
     *as_client = None;
 
     Ok("Done".into())
