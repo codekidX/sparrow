@@ -75,34 +75,38 @@ function App() {
       </Form>
 
       <br />
-      <b>Saved</b>
-      <br />
-      <br />
-      <Row>
-        {conns.map(conn =>
-        (
-          <Col xs={6} md={4}>
-            <Card style={{ backgroundColor: '#242526', fontSize: '13px', borderRadius: '5px' }} >
-              <Card.Header><b>{conn.nickname}</b></Card.Header>
-              <Card.Body>
-                {conn.hosts}
-              </Card.Body>
-              <Card.Footer style={{ display: 'flex', flexDirection: 'row-reverse', backgroundColor: '#242526' }}>
-                <Button style={{ fontSize: '13px' }} variant='success' onClick={() => {
-                  invoke("connect", { payload: conn })
-                    .then(message => {
+      {conns.length > 0 ? (
+        <div>
+          <b>Saved</b>
+          <br />
+          <br />
 
-                      navigate("/schema", { state: { host: conn.hosts } });
-                    })
-                    .catch(e => console.error(e))
-                }}>Connect</Button>
-              </Card.Footer>
-            </Card>
-          </Col>
-        )
-        )}
-      </Row>
+          <Row>
+            {conns.map(conn =>
+            (
+              <Col xs={6} md={4}>
+                <Card style={{ backgroundColor: '#242526', fontSize: '13px', borderRadius: '5px' }} >
+                  <Card.Header><b>{conn.nickname}</b></Card.Header>
+                  <Card.Body>
+                    {conn.hosts}
+                  </Card.Body>
+                  <Card.Footer style={{ display: 'flex', flexDirection: 'row-reverse', backgroundColor: '#242526' }}>
+                    <Button style={{ fontSize: '13px' }} variant='success' onClick={() => {
+                      invoke("connect", { payload: conn })
+                        .then(message => {
 
+                          navigate("/schema", { state: { host: conn.hosts } });
+                        })
+                        .catch(e => console.error(e))
+                    }}>Connect</Button>
+                  </Card.Footer>
+                </Card>
+              </Col>
+            )
+            )}
+          </Row>
+        </div>
+      ) : ''}
     </div>
   );
 }
