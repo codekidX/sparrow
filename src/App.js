@@ -46,7 +46,7 @@ function App() {
               localStorage.setItem("conns", JSON.stringify(connections));
             }
 
-            navigate("/schema", { state: { host: e.target[0].value } });
+            navigate("/schema", { state: { host: payload.hosts, nickname: payload.nickname } });
           })
           .catch(e => console.error(e));
       }}>
