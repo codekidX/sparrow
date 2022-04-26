@@ -47,6 +47,15 @@ function App() {
           port: Number(e.target[4].value),
         };
 
+        const hasSameNickname = !!conns.find(c => c.nickname === payload.nickname);
+        if (hasSameNickname) {
+          setState({
+            ...state,
+            messageError: `Connection with nickname: "${payload.nickname}" already exists. Please change the nickname.`
+          });
+          return;
+        }
+
         invoke("connect", { payload })
           .then(response => {
             if (!response.ok) {
