@@ -106,9 +106,6 @@ function App() {
               <Col xs={6} md={4}>
                 <Card style={{ backgroundColor: '#242526', fontSize: '13px', borderRadius: '5px' }} >
                   <Card.Header><b>{conn.nickname}</b></Card.Header>
-                  <Card.Body>
-                    {conn.hosts}
-                  </Card.Body>
                   <Card.Footer style={{ display: 'flex', flexDirection: 'row-reverse', backgroundColor: '#242526' }}>
                     <Button style={{ fontSize: '13px' }} variant='success' onClick={() => {
                       invoke("connect", { payload: conn })

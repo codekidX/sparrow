@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import "./App.css";
 
 import { invoke } from "@tauri-apps/api/tauri"
-import { Button, Card, ListGroup, ListGroupItem } from "react-bootstrap";
+import { Button, ListGroup, ListGroupItem } from "react-bootstrap";
 import { useEffect, useState } from "react";
 
 function Schema() {
