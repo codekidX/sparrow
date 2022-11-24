@@ -36,8 +36,10 @@ struct ListSetsPayload {
 struct SparrowQuery {
     ns: String,
     set: String,
+    #[serde(alias = "$select")]
     bins: Option<Vec<String>>,
-    filter: Vec<String>,
+    #[serde(alias = "$pk")]
+    pk: Vec<String>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -147,11 +149,18 @@ fn query_set(
     let as_client = state.as_client.lock().unwrap();
     let c = as_client.as_ref().unwrap();
     let mut batch_reads = vec![];
-    for k in query.filter {
-        batch_reads.push(BatchRead::new(
-            as_key!(&query.ns, &query.set, k),
-            &Bins::All,
-        ));
+    if query.pk.len() == 0 {
+        return Err(String::from("Cannot query without primary key"));
+    }
+
+    let bins = if query.bins.is_some() {
+        Bins::Some(query.bins.unwrap())
+    } else {
+        Bins::All
+    };
+
+    for k in query.pk {
+        batch_reads.push(BatchRead::new(as_key!(&query.ns, &query.set, k), &bins));
     }
 
     let mut result = vec![];

@@ -20,8 +20,8 @@ into respective FilterExpression and Statement.
 
 ```json
 {
-    "filter": ["codekidX"],
-    "bins": ["email", "mobile"]
+    "$pk": ["codekidX"],
+    "$select": ["email", "mobile"]
 }
 ```
 
