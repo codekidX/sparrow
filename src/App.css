@@ -15,3 +15,60 @@
 .monaco-editor {
   border-radius: 10px !important;
 }
+
+
+.table-curved {
+  border-collapse: separate;
+}
+
+.table-curved {
+  border: solid #242526 1px;
+  border-radius: 6px;
+  border-left: 0px;
+  background-color: transparent !important;
+}
+
+.table-curved td,
+.table-curved th {
+  border-left: 1px solid #242526;
+  border-top: 1px solid #242526;
+}
+
+.table-curved th {
+  border-top: none;
+  font-weight: bold;
+  color: #ccc;
+  border-bottom: none;
+}
+
+.table-curved th:first-child {
+  border-radius: 6px 0 0 0;
+}
+
+.table-curved th:last-child {
+  border-radius: 0 6px 0 0;
+}
+
+.table-curved th:only-child {
+  border-radius: 6px 6px 0 0;
+}
+
+.table>:not(caption)>*>* {
+  background-color: transparent !important;
+}
+
+.table>tr {
+  width: 100%;
+}
+
+.table-curved tr:last-child td:first-child {
+  border-radius: 0 0 0 6px;
+}
+
+.table-curved tr:last-child td:last-child {
+  border-radius: 0 0 6px 0;
+}
+
+.table {
+  width: auto !important;
+}

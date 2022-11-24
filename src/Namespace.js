@@ -1,4 +1,4 @@
-import { Row, Button, Col, Card, Toast, ToastContainer } from "react-bootstrap";
+import { Row, Button, Col, Card, Table } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import "./App.css";
@@ -30,15 +30,16 @@ function Namespace() {
         activeSetIndex: 0,
         records: [],
         messageError: '',
-        messageSuccess: ''
+        messageSuccess: '',
+        headerKeys: []
     });
-    
+
     let queryRef = useRef();
 
 
     function handleEditorDidMount(editor, monaco) {
-        queryRef.current = editor; 
-      }
+        queryRef.current = editor;
+    }
 
     useEffect(() => {
         invoke("get_sets", { payload: location.state })
@@ -56,28 +57,28 @@ function Namespace() {
         let queryObject;
         try {
             queryObject = JSON.parse(queryRef.current.getValue());
-            if (!queryObject.filter) {
-                showErrorToast("filter key not specified");
+            if (!queryObject.$pk) {
+                showErrorToast("primary key not specified");
                 return;
             }
 
-            if (!Array.isArray(queryObject.filter)) {
-                showErrorToast("filter is not an array");
+            if (!Array.isArray(queryObject.$pk)) {
+                showErrorToast("primary key filter is not an array");
                 return;
             }
 
-            if (queryObject.filter.length === 0) {
-                showErrorToast("filter cannot be empty");
+            if (queryObject.$pk.length === 0) {
+                showErrorToast("primary key filter cannot be empty");
                 return;
             }
 
-            if (queryObject.bins) {
-                if (!Array.isArray(queryObject.bins)) {
+            if (queryObject.$select) {
+                if (!Array.isArray(queryObject.$select)) {
                     showErrorToast("bins is not an array");
                     return;
                 }
 
-                if (queryObject.bins.length === 0) {
+                if (queryObject.$select.length === 0) {
                     showErrorToast("bins should not be empty");
                     return;
                 }
@@ -85,25 +86,25 @@ function Namespace() {
 
             invoke("query_set", { query: { ...queryObject, ns: location.state.ns, set: state.sets[state.activeSetIndex] } })
                 .then(records => {
-                    setState({ ...state, records, messageSuccess: `Got ${records.length} record(s)` });
+                    setState({ ...state, records, headerKeys: records.length > 0 ? Object.keys(records[0]) : [], messageSuccess: `Got ${records.length} record(s)` });
                 })
                 .catch(e => console.error(e));
-        } catch(e) {
+        } catch (e) {
             console.error("Error while parsing json -> ", e);
         }
     }
 
-    
+
     const resetMessage = () => {
-        setState({...state, messageSuccess: '', messageError: '' });
+        setState({ ...state, messageSuccess: '', messageError: '' });
     }
 
     const showSuccessToast = (message) => {
-        setState({...state, messageSuccess: message });
+        setState({ ...state, messageSuccess: message });
     }
 
     const showErrorToast = (message) => {
-        setState({...state, messageError: message});
+        setState({ ...state, messageError: message });
     }
 
     return (
@@ -142,25 +143,53 @@ function Namespace() {
                 </Col>
                 <Col xs={14} md={9}>
                     <div style={{ display: 'flex' }} >
-                    <Editor
-                        onMount={handleEditorDidMount}
-                        options={{minimap: { enabled: false }}}
-                        theme="vs-dark"
-                        height="5em"
-                        defaultLanguage="json"
-                        defaultValue={`{"filter": []}`}
-                    />
+                        <Editor
+                            onMount={handleEditorDidMount}
+                            options={{ minimap: { enabled: false } }}
+                            theme="vs-dark"
+                            height="5em"
+                            defaultLanguage="json"
+                            defaultValue={`{"$pk": []}`}
+                        />
                         <Button onClick={onRunClicked} variant="outline-light" style={{ margin: '0.5em' }} >Run</Button>
                     </div>
 
                     <br />
                     <br />
 
-                    {state.records.map(r => (
+
+                    <Table className="table-curved" id="records-table" variant="dark">
+                        {/* <thead>
+                            <tr>
+                                {state.headerKeys.map(th => <th>{th}</th>)}
+                            </tr>
+                        </thead> */}
+                        <tbody>
+                        
+                            {state.records.map(r => (
+                                <div>
+                        <th style={{ width: '40%' }}>
+                                        Key
+                                    </th>
+                                    <th style={{ width: '60%' }}>
+                                       Value
+                                    </th>            
+                                    {state.headerKeys.map(th => (
+                                            <tr>
+                                            <td style={{ width: '40%' }}>{th}</td>
+                                            <td style={{ width: '60%' }}>{r[th]}</td>
+                                            </tr>
+                                    ))}
+                                </div>
+                            ))}
+                        </tbody>
+                    </Table>
+
+                    {/* {state.records.map(r => (
                         <Card style={{ margin: '2em', backgroundColor: '#242526', border: 'none', fontFamily: 'monospace' }}>
                         <Card.Body>{JSON.stringify(r, null, 2)}</Card.Body>
                         </Card>
-                    ))}
+                    ))} */}
 
                 </Col>
             </Row>
