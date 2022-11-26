@@ -2,7 +2,7 @@
 
 |Status| Version | Download | Platforms |
 |------|----------|---------|-----------|
-| `Beta` | **0.1.1** | [Releases](https://github.com/codekidX/sparrow/releases) | Mac |
+| `Beta` | **0.1.3** | [Releases](https://github.com/codekidX/sparrow/releases) | Mac |
 
 Sparrow is a minimal Aerospike client used to view data from your Aerospike
 cluster. Sparrow does not have ability to write/update data yet. 
@@ -25,8 +25,8 @@ into respective FilterExpression and Statement.
 }
 ```
 
-1. `filter` your set where primary key is `codekidX`
-2. `bins` lets you include the data corresponding to your `filter`
+1. `pk` your set where primary key is `codekidX`
+2. `select` lets you include the data corresponding to your `filter`
 
 #### Debugging/Developing
 
