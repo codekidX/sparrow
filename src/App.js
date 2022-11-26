@@ -97,15 +97,17 @@ function App() {
           <Form.Control required style={inputStyle} max={99999} type="number" placeholder="Enter port" />
         </Form.Group>
 
-        <Button style={{ fontSize: '13px' }} variant="outline-light" type="submit">
+        <Button style={{ fontSize: '13px', borderColor: '#2d2d2d' }} variant="outline-light" type="submit">
           Submit
         </Button>
       </Form>
 
       <br />
+      <div style={{ width: '100%', height: '1px', backgroundColor: '#2d2d2d' }} ></div>
+      <br />
       {conns.length > 0 ? (
         <div>
-          <b>Saved</b>
+          <b>Saved Connections</b>
           <br />
           <br />
 
@@ -116,7 +118,7 @@ function App() {
                 <Card style={{ backgroundColor: '#242526', fontSize: '13px', borderRadius: '5px' }} >
                   <Card.Header><b>{conn.nickname}</b></Card.Header>
                   <Card.Footer style={{ display: 'flex', flexDirection: 'row-reverse', backgroundColor: '#242526' }}>
-                    <Button style={{ fontSize: '13px' }} variant='success' onClick={() => {
+                    <Button style={{ fontSize: '13px', background: 'linear-gradient(to right, #9d50bb, #6e48aa)', border: 'none' }} onClick={() => {
                       invoke("connect", { payload: conn })
                         .then(response => {
                           if (!response.ok) {

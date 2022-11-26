@@ -1,4 +1,4 @@
-import { Row, Button, Col, Card, Table } from "react-bootstrap";
+import { Row, Button, Col, Card, Badge } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import "./App.css";
@@ -57,16 +57,10 @@ function Namespace() {
         let queryObject;
         try {
             queryObject = JSON.parse(queryRef.current.getValue());
-            if (!queryObject.$pk) {
-                showErrorToast("primary key not specified");
+            if (Object.keys(queryObject).length == 0) {
+                showErrorToast("Nothing to query!");
                 return;
             }
-
-            if (!Array.isArray(queryObject.$pk)) {
-                showErrorToast("primary key filter is not an array");
-                return;
-            }
-
             if (queryObject.$pk.length === 0) {
                 showErrorToast("primary key filter cannot be empty");
                 return;
@@ -84,7 +78,7 @@ function Namespace() {
                 }
             }
 
-            invoke("query_set", { query: { ...queryObject, ns: location.state.ns, set: state.sets[state.activeSetIndex] } })
+            invoke("query_set", { query: { ...queryObject, ns: location.state.ns, set: state.sets[state.activeSetIndex].set } })
                 .then(records => {
                     setState({ ...state, records, headerKeys: records.length > 0 ? Object.keys(records[0]) : [], messageSuccess: `Got ${records.length} record(s)` });
                 })
@@ -108,33 +102,36 @@ function Namespace() {
     }
 
     return (
-        <div className="App" style={{ fontSize: '13px' }}>
-            <Button style={{ fontSize: '13px' }} onClick={() => {
+        <div className="App">
+            <Button style={{ fontSize: '12px', background: 'linear-gradient(to right, #9d50bb, #6e48aa)', border: 'none' }} onClick={() => {
                 navigate(-1);
             }}  >Go back</Button>
 
-            <a target="_blank" href="https://github.com/codekidX/sparrow#sparrow-query">
-                <Button variant="outline-light" style={{ marginLeft: '1em', fontSize: '13px' }}>📚 Sparrow Query Docs</Button>
-            </a>
+            {/* <a target="_blank" href="https://github.com/codekidX/sparrow#sparrow-query">
+                <Button variant="outline-light" style={{ marginLeft: '1em', fontSize: '13px', borderColor: '#2d2d2d' }}>📚 Sparrow Query Docs</Button>
+            </a> */}
 
-            <span style={{ marginLeft: '1em', marginRight: '1em' }}>{location.state.ns} </span> |
+            <span style={{ marginLeft: '1em', marginRight: '1em' }}>{location.state.ns}</span> →
             <span style={{ marginLeft: '1em' }}>{location.state.host}</span>
 
             <br />
             <br />
             <Row style={{ height: '100%' }}>
                 <Col xs={4} md={3}>
-                    <div style={{ backgroundColor: '#242526', height: '100%', borderRadius: '5px' }}>
+                    <div style={{ backgroundColor: 'transparent', height: '100%', borderRadius: '5px', border: '0.01px solid #2d2d2d' }}>
                         {state.sets.map((set, index) => {
                             if (index === state.activeSetIndex) {
-                                return (<div style={{ borderRadius: '5px', backgroundColor: 'blue', color: 'white', padding: '1.5em' }} >
-                                    {set}
+                                return (<div style={{ borderRadius: '5px',
+                                background: 'linear-gradient(to right, #9d50bb, #6e48aa)',
+                                color: 'white', padding: '1.2em'
+                                 }} >
+                                    {set.set}
                                 </div>)
                             } else {
                                 return (<div onClick={() => {
                                     setState({ ...state, activeSetIndex: index });
-                                }} style={{ borderRadius: '5px', color: 'white', padding: '1.5em', cursor: 'pointer' }} >
-                                    {set}
+                                }} style={{ borderRadius: '5px', color: 'white', padding: '1em', cursor: 'pointer' }} >
+                                    {set.set}
                                 </div>)
                             }
                         })
@@ -147,43 +144,47 @@ function Namespace() {
                             onMount={handleEditorDidMount}
                             options={{ minimap: { enabled: false } }}
                             theme="vs-dark"
-                            height="5em"
+                            height="8em"
                             defaultLanguage="json"
                             defaultValue={`{"$pk": []}`}
                         />
-                        <Button onClick={onRunClicked} variant="outline-light" style={{ margin: '0.5em' }} >Run</Button>
+                        <Button onClick={onRunClicked} variant="outline-light" style={{ margin: '0.5em', borderColor: '#2d2d2d', fontSize: '12px' }} >Run</Button>
                     </div>
-
                     <br />
+                    {state.sets.length > 0 ? (<h6><Badge className="meta-badge">count: {state.sets[state.activeSetIndex].objects}</Badge></h6>) : (<div></div>)}
                     <br />
 
+{/* 
+                    <td style={{ width: '40%' }}>{th}</td>
+                                            <td style={{ width: '60%' }}>{r[th]}</td> */}
 
-                    <Table className="table-curved" id="records-table" variant="dark">
-                        {/* <thead>
-                            <tr>
-                                {state.headerKeys.map(th => <th>{th}</th>)}
-                            </tr>
-                        </thead> */}
-                        <tbody>
-                        
-                            {state.records.map(r => (
-                                <div>
-                        <th style={{ width: '40%' }}>
-                                        Key
-                                    </th>
-                                    <th style={{ width: '60%' }}>
-                                       Value
-                                    </th>            
-                                    {state.headerKeys.map(th => (
-                                            <tr>
-                                            <td style={{ width: '40%' }}>{th}</td>
-                                            <td style={{ width: '60%' }}>{r[th]}</td>
-                                            </tr>
-                                    ))}
-                                </div>
-                            ))}
-                        </tbody>
-                    </Table>
+                    {state.records.map(r => (
+                    <Card style={{ marginTop: '0.7em', backgroundColor: '#1d1d1d' }}>
+                        <Card.Header>
+                            <Row>
+                                <Col>
+                                Key
+                                </Col>
+                                <Col>
+                                Value
+                                </Col>
+                            </Row>
+                        </Card.Header>
+                        <Card.Body>
+                        {state.headerKeys.map(th => (
+                            <Row>
+                                <Col>
+                                {th}
+                                </Col>
+                                <Col style={{ borderLeft: '0.5px solid #2d2d2d' }} >
+                                {r[th]}
+                                </Col>
+                            </Row>
+                        ))}
+                        </Card.Body>
+                           
+                    </Card>)
+                    )}
 
                     {/* {state.records.map(r => (
                         <Card style={{ margin: '2em', backgroundColor: '#242526', border: 'none', fontFamily: 'monospace' }}>

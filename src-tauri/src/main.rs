@@ -3,9 +3,13 @@
     windows_subsystem = "windows"
 )]
 
-use std::{collections::HashMap, sync::Mutex};
+use std::{any::Any, collections::HashMap, sync::Mutex};
 
-use aerospike::{as_key, BatchPolicy, BatchRead, Bins, Client, ClientPolicy};
+use aerospike::{
+    as_key,
+    expressions::{self, FilterExpression},
+    BatchPolicy, BatchRead, Bins, Client, ClientPolicy,
+};
 use tauri::{AboutMetadata, Menu, MenuEntry, MenuItem, Submenu};
 
 struct AppState {
@@ -32,6 +36,12 @@ struct ListSetsPayload {
     node: String,
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default)]
+struct SetData {
+    set: String,
+    objects: String,
+}
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 struct SparrowQuery {
     ns: String,
@@ -39,7 +49,11 @@ struct SparrowQuery {
     #[serde(alias = "$select")]
     bins: Option<Vec<String>>,
     #[serde(alias = "$pk")]
-    pk: Vec<String>,
+    pk: Option<Vec<String>>,
+    #[serde(alias = "$filter")]
+    filter: Option<HashMap<String, String>>,
+    #[serde(alias = "$ttl")]
+    ttl: Option<bool>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -119,7 +133,7 @@ fn get_node_info(state: tauri::State<AppState>) -> Result<Vec<ASNode>, String> {
 fn get_sets(
     state: tauri::State<AppState>,
     payload: ListSetsPayload,
-) -> Result<Vec<String>, String> {
+) -> Result<Vec<SetData>, String> {
     let as_client = state.as_client.lock().unwrap();
     let c = as_client.as_ref().unwrap();
     let node = c.get_node(&payload.node).unwrap();
@@ -130,10 +144,17 @@ fn get_sets(
     let set_split: Vec<&str> = value.split(";").collect();
     for ss in set_split {
         let prop_split: Vec<&str> = ss.split(":").collect();
+        let mut set_data = SetData::default();
         for ps in prop_split {
             if ps.starts_with("set=") {
                 let pair: Vec<&str> = ps.split("=").collect();
-                result.push(pair.get(1).unwrap().to_string());
+                set_data.set = pair.get(1).unwrap().to_string();
+            }
+            if ps.starts_with("objects=") {
+                let pair: Vec<&str> = ps.split("=").collect();
+                set_data.objects = pair.get(1).unwrap().to_string();
+                result.push(set_data);
+                set_data = SetData::default();
             }
         }
     }
@@ -149,26 +170,40 @@ fn query_set(
     let as_client = state.as_client.lock().unwrap();
     let c = as_client.as_ref().unwrap();
     let mut batch_reads = vec![];
-    if query.pk.len() == 0 {
-        return Err(String::from("Cannot query without primary key"));
+    if query.pk.is_none() && query.bins.is_none() && query.filter.is_none() {
+        return Err("Nothing to execute!".into());
     }
-
     let bins = if query.bins.is_some() {
         Bins::Some(query.bins.unwrap())
     } else {
         Bins::All
     };
 
-    for k in query.pk {
-        batch_reads.push(BatchRead::new(as_key!(&query.ns, &query.set, k), &bins));
+    if let Some(pk) = query.pk {
+        if pk.len() == 0 {
+            return Err(String::from("Cannot query without primary key"));
+        }
+        for k in pk {
+            batch_reads.push(BatchRead::new(as_key!(&query.ns, &query.set, k), &bins));
+        }
     }
 
     let mut result = vec![];
-    match c.batch_get(&BatchPolicy::default(), batch_reads) {
+    let mut query_policy = BatchPolicy::default();
+
+    if let Some(ttl) = query.ttl {
+        if ttl == true {
+            println!("setting ttl expression");
+            query_policy.filter_expression = Some(expressions::ttl());
+        }
+    }
+
+    match c.batch_get(&query_policy, batch_reads) {
         Ok(records) => {
             for record in records {
                 if record.record.is_some() {
                     let r = record.record.unwrap();
+                    println!("Records: {:?}", r);
                     let mut map_r = HashMap::new();
                     for k in r.bins.keys() {
                         map_r.insert(k.clone(), r.bins[k].to_string());

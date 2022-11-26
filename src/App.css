@@ -5,11 +5,12 @@
 
 .boxed {
   background-color: #242526;
-  padding: 0.2em;
+  padding: 1em;
   border-radius: 5px;
+  /* border: '1px solid #2d2d2d'; */
   width: auto;
   color: white;
-  font-family: monospace;
+  /* font-family: monospace; */
 }
 
 .monaco-editor {
@@ -72,3 +73,13 @@
 .table {
   width: auto !important;
 }
+
+.meta-badge.bg-primary {
+  font-weight: 400;
+  background-color: transparent !important;
+  border: 1px solid #7d329b;
+}
+
+/* #records-table {
+  font-family: monospace;
+} */
