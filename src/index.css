@@ -1,12 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Jura:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
 
 
 body {
   background-color: #18191A !important;
   color: white !important;
-  font-family: 'Jura' !important;
-  /* font-weight: 300; */
-  /* font-size: 0.75rem; */
+  font-family: 'Montserrat' !important;
+  /* font-weight: lighter; */
+  /* font-weight: 300 !important; */
+  font-size: 12px !important;
 }
 
 thead tr {
