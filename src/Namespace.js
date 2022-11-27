@@ -159,24 +159,24 @@ function Namespace() {
                                             <td style={{ width: '60%' }}>{r[th]}</td> */}
 
                     {state.records.map(r => (
-                    <Card style={{ marginTop: '0.7em', backgroundColor: '#1d1d1d' }}>
-                        <Card.Header>
+                    <Card style={{ borderRadius: '5px', marginTop: '0.7em', backgroundColor: '#242526' }}>
+                        {/* <Card.Header>
                             <Row>
                                 <Col>
-                                Key
+                                <b>Key</b>
                                 </Col>
                                 <Col>
-                                Value
+                                <b>Value</b>
                                 </Col>
                             </Row>
-                        </Card.Header>
+                        </Card.Header> */}
                         <Card.Body>
                         {state.headerKeys.map(th => (
-                            <Row>
+                            <Row style={{ padding: '0.2em' }} >
                                 <Col>
                                 {th}
                                 </Col>
-                                <Col style={{ borderLeft: '0.5px solid #2d2d2d' }} >
+                                <Col style={{ borderLeft: '0.5px solid #111' }} >
                                 {r[th]}
                                 </Col>
                             </Row>

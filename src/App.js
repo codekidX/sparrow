@@ -116,8 +116,10 @@ function App() {
             (
               <Col xs={6} md={4}>
                 <Card style={{ backgroundColor: '#242526', fontSize: '13px', borderRadius: '5px' }} >
-                  <Card.Header><b>{conn.nickname}</b></Card.Header>
-                  <Card.Footer style={{ display: 'flex', flexDirection: 'row-reverse', backgroundColor: '#242526' }}>
+                  <div style={{ padding: '1em' }}>
+                  <b>{conn.nickname}</b>
+                  </div>
+                  <Card.Body style={{ display: 'flex', flexDirection: 'row-reverse', backgroundColor: '#242526' }}>
                     <Button style={{ fontSize: '13px', background: 'linear-gradient(to right, #9d50bb, #6e48aa)', border: 'none' }} onClick={() => {
                       invoke("connect", { payload: conn })
                         .then(response => {
@@ -132,7 +134,7 @@ function App() {
                           navigate("/schema", { state: { host: conn.hosts, nickname: conn.nickname }, replace: true });
                         });
                     }}>Connect</Button>
-                  </Card.Footer>
+                  </Card.Body>
                 </Card>
               </Col>
             )
