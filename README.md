@@ -1,32 +1,52 @@
-# Sparrow
+# 🕊️ sparrow: 
+
+> a read only client for aerospike
 
 |Status| Version | Download | Platforms |
 |------|----------|---------|-----------|
 | `Beta` | **0.1.3** | [Releases](https://github.com/codekidX/sparrow/releases) | Mac |
 
 Sparrow is a minimal Aerospike client used to view data from your Aerospike
-cluster. Sparrow does not have ability to write/update data yet. 
+cluster. _**Sparrow does not have ability to write/update data yet.**_
 
 
 ### Sparrow Query
 
-Due to the lack of proper pre-approving AQL query in engine, Sparrow implements
-a simple schema for querying the `RecordSet`. This schema is then 
-- analyzed
-- validated
-- converted
+#### $pk
 
-into respective FilterExpression and Statement.
+You can directly query for your primary key using the `$pk` query
 
 ```json
 {
-    "$pk": ["codekidX"],
-    "$select": ["email", "mobile"]
+    "$pk": ["a", "b"]
 }
 ```
 
-1. `pk` your set where primary key is `codekidX`
-2. `select` lets you include the data corresponding to your `filter`
+`$pk` accepts list of primary keys and will only return data for the primary keys available in the set.
+
+#### $eq
+
+The `$eq` query uses filter expressions to query data for any secondary index. It **does not work on primary key** and fails if there is no secondary index on the key specified.
+
+```json
+{
+    $eq: {
+        name: "codekidx"
+    }
+}
+```
+
+#### $select
+
+The `$select` selects only those bins which are provided in this query.
+
+```json
+{
+    $pk: ["a"],
+    $select: ["name", "age"]
+}
+```
+this only returns bins `name` and `age` instead of returning all bins. The `$select` can also be used with `$eq` query.
 
 #### Debugging/Developing
 
