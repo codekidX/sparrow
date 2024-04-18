@@ -30,8 +30,8 @@ The `$eq` query uses filter expressions to query data for any secondary index. I
 
 ```json
 {
-    $eq: {
-        name: "codekidx"
+    "$eq": {
+        "name": "codekidx"
     }
 }
 ```
@@ -42,8 +42,8 @@ The `$select` selects only those bins which are provided in this query.
 
 ```json
 {
-    $pk: ["a"],
-    $select: ["name", "age"]
+    "$pk": ["a"],
+    "$select": ["name", "age"]
 }
 ```
 this only returns bins `name` and `age` instead of returning all bins. The `$select` can also be used with `$eq` query.
