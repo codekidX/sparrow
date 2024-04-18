@@ -1,4 +1,4 @@
-# 🕊️ sparrow: 
+# 🕊️ sparrow
 
 > a read only client for aerospike
 
@@ -10,9 +10,9 @@ Sparrow is a minimal Aerospike client used to view data from your Aerospike
 cluster. _**Sparrow does not have ability to write/update data yet.**_
 
 
-### Sparrow Query
+> ## Sparrow Query
 
-#### $pk
+### $pk
 
 You can directly query for your primary key using the `$pk` query
 
@@ -24,7 +24,7 @@ You can directly query for your primary key using the `$pk` query
 
 `$pk` accepts list of primary keys and will only return data for the primary keys available in the set.
 
-#### $eq
+### $eq
 
 The `$eq` query uses filter expressions to query data for any secondary index. It **does not work on primary key** and fails if there is no secondary index on the key specified.
 
@@ -36,7 +36,7 @@ The `$eq` query uses filter expressions to query data for any secondary index. I
 }
 ```
 
-#### $select
+### $select
 
 The `$select` selects only those bins which are provided in this query.
 
