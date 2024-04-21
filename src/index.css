@@ -17,3 +17,11 @@ thead tr {
 tr {
   border-bottom: 1px solid #2e2e2e !important;
 }
+
+.card {
+  color: white !important;
+}
+
+input::placeholder {
+  color: slategray !important;
+}
