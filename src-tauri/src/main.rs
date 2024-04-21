@@ -3,12 +3,12 @@
     windows_subsystem = "windows"
 )]
 
-use std::{any::Any, collections::HashMap, sync::Mutex};
+use std::{collections::HashMap, sync::Mutex};
 
 use aerospike::{
-    as_key,
-    expressions::{self, FilterExpression},
-    BatchPolicy, BatchRead, Bins, Client, ClientPolicy,
+    as_eq, as_key, as_val,
+    expressions::{self, bool_val, int_bin},
+    BatchPolicy, BatchRead, Bins, Client, ClientPolicy, QueryPolicy, ScanPolicy, Statement,
 };
 use tauri::{AboutMetadata, Menu, MenuEntry, MenuItem, Submenu};
 
@@ -40,6 +40,7 @@ struct ListSetsPayload {
 struct SetData {
     set: String,
     objects: String,
+    size_bytes: String,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -50,8 +51,8 @@ struct SparrowQuery {
     bins: Option<Vec<String>>,
     #[serde(alias = "$pk")]
     pk: Option<Vec<String>>,
-    #[serde(alias = "$filter")]
-    filter: Option<HashMap<String, String>>,
+    #[serde(alias = "$eq")]
+    eq: Option<HashMap<String, serde_json::Value>>,
     #[serde(alias = "$ttl")]
     ttl: Option<bool>,
 }
@@ -141,6 +142,7 @@ fn get_sets(
     let set_key = format!("sets/{}", payload.ns);
     let sets = c.info(&[&set_key], &node.host()).unwrap();
     let value = sets.get(&set_key).unwrap();
+    // println!("set value: {}", value);
     let set_split: Vec<&str> = value.split(";").collect();
     for ss in set_split {
         let prop_split: Vec<&str> = ss.split(":").collect();
@@ -153,6 +155,11 @@ fn get_sets(
             if ps.starts_with("objects=") {
                 let pair: Vec<&str> = ps.split("=").collect();
                 set_data.objects = pair.get(1).unwrap().to_string();
+            }
+            if ps.starts_with("memory_data_bytes=") {
+                let pair: Vec<&str> = ps.split("=").collect();
+                set_data.size_bytes = pair.get(1).unwrap().to_string();
+                // FIXME: looks ugly, find a way to push at the end of the loop
                 result.push(set_data);
                 set_data = SetData::default();
             }
@@ -163,6 +170,32 @@ fn get_sets(
 }
 
 #[tauri::command]
+fn scan_set(
+    state: tauri::State<AppState>,
+    ns: String,
+    set: String,
+) -> Result<Vec<HashMap<String, String>>, String> {
+    let as_client = state.as_client.lock().unwrap();
+    let c = as_client.as_ref().unwrap();
+
+    let mut sp = ScanPolicy::default();
+    sp.socket_timeout = 1;
+    let rs = c.scan(&sp, &ns, &set, Bins::All).unwrap();
+    let mut result = vec![];
+    for r in &*rs {
+        let rec = r.unwrap();
+        let mut map_r = HashMap::new();
+        for k in rec.bins.keys() {
+            map_r.insert(k.clone(), rec.bins[k].to_string());
+        }
+
+        result.push(map_r);
+    }
+
+    return Ok(result);
+}
+
+#[tauri::command]
 fn query_set(
     state: tauri::State<AppState>,
     query: SparrowQuery,
@@ -170,7 +203,7 @@ fn query_set(
     let as_client = state.as_client.lock().unwrap();
     let c = as_client.as_ref().unwrap();
     let mut batch_reads = vec![];
-    if query.pk.is_none() && query.bins.is_none() && query.filter.is_none() {
+    if query.pk.is_none() && query.bins.is_none() && query.eq.is_none() {
         return Err("Nothing to execute!".into());
     }
     let bins = if query.bins.is_some() {
@@ -189,14 +222,57 @@ fn query_set(
     }
 
     let mut result = vec![];
-    let mut query_policy = BatchPolicy::default();
 
-    if let Some(ttl) = query.ttl {
-        if ttl == true {
-            println!("setting ttl expression");
-            query_policy.filter_expression = Some(expressions::ttl());
+    if let Some(eq_exp) = query.eq {
+        let mut stmt = Statement::new(&query.ns, &query.set, bins);
+        for (k, dyn_val) in eq_exp {
+            match dyn_val {
+                serde_json::Value::Null => continue,
+                serde_json::Value::Bool(v) => stmt.add_filter(as_eq!(&k, v)),
+                serde_json::Value::Number(v) => {
+                    if let Some(unsigned_v) = v.as_i64() {
+                        stmt.add_filter(as_eq!(&k, unsigned_v))
+                    }
+                }
+                serde_json::Value::String(v) => stmt.add_filter(as_eq!(&k, v)),
+                serde_json::Value::Array(_) => continue,
+                serde_json::Value::Object(_) => continue,
+            }
+        }
+
+        println!("stmt constructed: {:?}", stmt.filters);
+
+        let qp = QueryPolicy::default();
+        match c.query(&qp, stmt) {
+            Ok(rs) => {
+                for r in &*rs {
+                    match r {
+                        Ok(rec) => {
+                            let mut map_r = HashMap::new();
+                            for k in rec.bins.keys() {
+                                map_r.insert(k.clone(), rec.bins[k].to_string());
+                            }
+
+                            result.push(map_r);
+                        }
+                        Err(e) => return Err(e.to_string()),
+                    }
+                }
+
+                return Ok(result);
+            }
+            Err(e) => return Err(e.to_string()),
         }
     }
+
+    let mut query_policy = BatchPolicy::default();
+
+    // if let Some(ttl) = query.ttl {
+    //     if ttl == true {
+    //         println!("setting ttl expression");
+    //         query_policy.filter_expression = Some(expressions::ttl());
+    //     }
+    // }
 
     match c.batch_get(&query_policy, batch_reads) {
         Ok(records) => {
@@ -229,7 +305,8 @@ fn main() {
             get_node_info,
             disconnect,
             get_sets,
-            query_set
+            query_set,
+            scan_set,
         ])
         .menu(Menu::with_items([
             #[cfg(target_os = "macos")]

@@ -53,7 +53,7 @@
     },
     "windows": [
       {
-        "title": "Sparrow",
+        "title": "sparrow",
         "width": 1000,
         "height": 700,
         "resizable": true,
