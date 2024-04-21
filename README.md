@@ -4,7 +4,7 @@
 
 |Status| Version | Download | Platforms |
 |------|----------|---------|-----------|
-| `Beta` | **0.1.3** | [Releases](https://github.com/codekidX/sparrow/releases) | Mac |
+| `Beta` | **0.1.4** | [Releases](https://github.com/codekidX/sparrow/releases) | Mac |
 
 Sparrow is a minimal Aerospike client used to view data from your Aerospike
 cluster. _**Sparrow does not have ability to write/update data yet.**_
@@ -23,6 +23,8 @@ You can directly query for your primary key using the `$pk` query
 ```
 
 `$pk` accepts list of primary keys and will only return data for the primary keys available in the set.
+
+> if $pk and $eq are both specified, $pk get precedence for querying.
 
 ### $eq
 
